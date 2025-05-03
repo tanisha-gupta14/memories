@@ -3,6 +3,8 @@ package main
 import (
 	"database/sql"
 	"log"
+	"os"
+	"github.com/joho/godotenv"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -10,20 +12,29 @@ import (
 var DB *sql.DB
 
 func InitDB() {
-	// This is your Railway public URL
-	dsn := "root:rIMXsXaJfXnQHgsLRiGqpAvTsgTAgMzU@tcp(ballast.proxy.rlwy.net:49782)/railway?parseTime=true&tls=false"
+	// Load .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("⚠️  No .env file found, using Railway env vars if available")
+	}
 
+	host := os.Getenv("MYSQL_HOST")
+	port := os.Getenv("MYSQL_PORT")
+	user := os.Getenv("MYSQL_USER")
+	password := os.Getenv("MYSQL_PASSWORD")
+	database := os.Getenv("MYSQL_DATABASE")
 
-	var err error
+	dsn := user + ":" + password + "@tcp(" + host + ":" + port + ")/" + database + "?parseTime=true"
+
 	DB, err = sql.Open("mysql", dsn)
 	if err != nil {
-		log.Fatal("Failed to connect to DB:", err)
+		log.Fatal("❌ Failed to open DB:", err)
 	}
 
 	err = DB.Ping()
 	if err != nil {
-		log.Fatal("Failed to ping DB:", err)
+		log.Fatal("❌ Failed to ping DB:", err)
 	}
 
-	log.Println("Connected to Railway DB!")
+	log.Println("✅ Connected to Railway DB!")
 }
