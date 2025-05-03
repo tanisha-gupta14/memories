@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
@@ -24,9 +25,13 @@ func main() {
 	http.HandleFunc("/delete-memory/", DeleteMemoryHandler)
 	http.HandleFunc("/check-login-status", CheckLoginStatusHandler)
 
-	// Start server
-	log.Println("Server started on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // fallback for local dev
+	}
+
+	log.Println("Server started on port", port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 // Define a struct to hold data for the template rendering
 type MemoryPageData struct {
