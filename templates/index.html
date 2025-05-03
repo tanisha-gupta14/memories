@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ebb</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <h1>Ebb🌊</h1>
+        {{if .LoggedIn}}
+        <p>Welcome, {{.Username}}! <a href="/logout">Logout</a></p>
+        <a href="/create-memory">Create a Memory</a>
+        <a href="/my-memories">My Memories</a>
+        {{else}}
+        <a href="/login">Login</a>
+        <a href="/signup">Sign Up</a>
+        {{end}}
+    </header>
+
+    <main>
+        <section>
+            <h2>Public Memories</h2>
+            {{if .PublicMemories}}
+            <div class="memory-gallery">
+                {{range .PublicMemories}}
+                <div class="memory-card">
+                    <h3>{{.Title}}</h3>
+                    <p>{{.Description}}</p>
+                    <img src="{{.ImagePath}}" alt="Memory Image" width="200">
+                </div>
+                {{end}}
+            </div>
+            {{else}}
+            <p>No public memories available.</p>
+            {{end}}
+        </section>
+
+       
+    </main>
+
+    
+</body>
+</html>

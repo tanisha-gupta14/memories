@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Public Memories</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <h1>All Public Memories</h1>
+        <a href="/">Home</a>
+    </header>
+
+    <main>
+        <h2>Public Memories</h2>
+
+        <!-- Check if there are public memories -->
+        {{if .}}
+            <div class="memory-gallery">
+                {{range .}}
+                    <div class="memory-card">
+                        <h3>{{.Title}}</h3>
+                        <p>{{.Description}}</p>
+                        <img src="{{.ImagePath}}" alt="Memory Image" width="200">
+                    </div>
+                {{end}}
+            </div>
+        {{else}}
+            <p>No public memories available.</p>
+        {{end}}
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Memory App</p>
+    </footer>
+</body>
+</html>

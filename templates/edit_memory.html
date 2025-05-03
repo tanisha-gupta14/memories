@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Memory</title>
+</head>
+<body>
+    <h1>Edit Memory</h1>
+
+    <form action="/update-memory/{{.MemoryID}}" method="POST" enctype="multipart/form-data">
+        <label>Title:</label><br>
+        <input type="text" name="title" value="{{.Title}}" required><br><br>
+
+        <label>Description:</label><br>
+        <textarea name="description" required>{{.Description}}</textarea><br><br>
+
+        <label>Current Image:</label><br>
+        <img src="{{.ImagePath}}" width="200"><br><br>
+
+        <label>Upload New Image (optional):</label><br>
+        <input type="file" name="image"><br><br>
+
+        <label>Privacy:</label><br>
+        <select name="privacy" required>
+            <option value="public" {{if eq .Privacy "public"}}selected{{end}}>Public</option>
+            <option value="private" {{if eq .Privacy "private"}}selected{{end}}>Private</option>
+        </select><br><br>
+
+        <button type="submit">Update Memory</button>
+    </form>
+</body>
+</html>

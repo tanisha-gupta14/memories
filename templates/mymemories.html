@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Memories</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <h1>My Memories</h1>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/create-memory"><button>Create New Memory</button></a>
+            <a href="/logout"><button>Logout</button></a>
+        </nav>
+    </header>
+
+    <main>
+        <h2>Your Memories</h2>
+
+        {{if .}} <!-- Check if memories are available -->
+            <div class="memory-gallery">
+                {{range .}} <!-- Loop through the memories -->
+                    <div class="memory-card">
+                        <h3>{{.Title}}</h3>
+                        <p>{{.Description}}</p>
+                        <img src="{{.ImagePath}}" alt="Memory Image" class="memory-image">
+                        <p><strong>Privacy:</strong> {{.Privacy}}</p>
+
+                        <!-- Edit Button -->
+                        <a href="/edit-memory/{{.MemoryID}}"><button>Edit</button></a>
+
+                        <!-- Delete Button -->
+                        <a href="/delete-memory/{{.MemoryID}}" onclick="return confirm('Are you sure you want to delete this memory?')">Delete</a>
+                    </div>
+                {{end}}
+            </div>
+        {{else}} <!-- If no memories -->
+            <p>You have no memories yet. Create one!</p>
+        {{end}}
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Memory App</p>
+    </footer>
+</body>
+</html>
