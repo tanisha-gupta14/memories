@@ -24,7 +24,10 @@ func main() {
 	http.HandleFunc("/update-memory/", UpdateMemoryHandler)
 	http.HandleFunc("/delete-memory/", DeleteMemoryHandler)
 	http.HandleFunc("/check-login-status", CheckLoginStatusHandler)
-
+    http.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+        w.Write([]byte("pong"))
+    })
+    
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080" // fallback for local dev
