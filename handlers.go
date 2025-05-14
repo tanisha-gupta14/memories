@@ -3,14 +3,14 @@ package main
 import (
 	
 	"errors"
-	"fmt"
-	"io" // Import io package for file copy
+	
+	
 	"log"
 	"net/http"
-	"os"
+	
 	"strconv"
 	"strings"
-	"time"
+	
 )
 
 // Example handler for rendering the home page
@@ -108,26 +108,22 @@ func AllMemoriesHandler(w http.ResponseWriter, r *http.Request) {
 
 func CreateMemoryHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
-		// Get the logged-in username from the session
 		username, err := getUsernameFromSession(r)
 		if err != nil {
 			http.Error(w, "Please log in to create a memory", http.StatusUnauthorized)
 			return
 		}
 
-		// Get form data
 		title := r.FormValue("title")
 		description := r.FormValue("description")
 		privacy := r.FormValue("privacy")
 
-		// Handle file upload (max size = 10 MB)
 		err = r.ParseMultipartForm(10 << 20)
 		if err != nil {
 			http.Error(w, "File too large. Max size is 10MB", http.StatusBadRequest)
 			return
 		}
 
-		// Get the file from the form
 		file, _, err := r.FormFile("image")
 		if err != nil {
 			http.Error(w, "Error retrieving image file", http.StatusInternalServerError)
@@ -135,44 +131,27 @@ func CreateMemoryHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		defer file.Close()
 
-		// Generate a unique filename using the username and current timestamp
-		filename := fmt.Sprintf("%s_%d.jpg", username, time.Now().Unix())
-
-		// Create the destination file path
-		filepath := "./static/images/" + filename
-
-		// Create the file in the specified directory
-		dst, err := os.Create(filepath)
+		// Upload to Imgur instead of saving locally
+		imageURL, err := uploadToImgBB(file)
 		if err != nil {
-			http.Error(w, "Error saving image file", http.StatusInternalServerError)
-			return
-		}
-		defer dst.Close()
-
-		// Copy the file content to the new file
-		_, err = io.Copy(dst, file)
-		if err != nil {
-			http.Error(w, "Error saving image file", http.StatusInternalServerError)
+			http.Error(w, "Error uploading image to Imgur", http.StatusInternalServerError)
 			return
 		}
 
-		// Insert the memory data into the database
+		// Save the Imgur image URL to DB
 		_, err = DB.Exec("INSERT INTO memories (username, title, description, image_path, privacy) VALUES (?, ?, ?, ?, ?)",
-			username, title, description, "/static/images/"+filename, privacy)
+			username, title, description, imageURL, privacy)
 		if err != nil {
 			http.Error(w, "Error creating memory", http.StatusInternalServerError)
 			return
 		}
 
-		// Redirect to "My Memories" page after successful memory creation
 		http.Redirect(w, r, "/mymemories", http.StatusSeeOther)
 		return
 	}
 
-	// If the request is GET, show the memory creation form
 	templates.ExecuteTemplate(w, "create_memory.html", nil)
 }
-
 
 
 
@@ -239,34 +218,28 @@ func UpdateMemoryHandler(w http.ResponseWriter, r *http.Request) {
     description := r.FormValue("description")
     privacy := r.FormValue("privacy")
 
-    // Optional image upload
+    // Optional image upload (this is where we modify the code to use ImgBB)
     var imagePath string
     file, _, err := r.FormFile("image")
     if err == nil {
-        filename := fmt.Sprintf("%s_%d.jpg", username, time.Now().Unix())
-        filepath := "./static/images/" + filename
-        dst, err := os.Create(filepath)
+        // Upload image to ImgBB
+        imageURL, err := uploadToImgBB(file)
         if err != nil {
-            http.Error(w, "Error saving image", http.StatusInternalServerError)
+            http.Error(w, "Error uploading image to ImgBB", http.StatusInternalServerError)
             return
         }
-        defer dst.Close()
-        _, err = io.Copy(dst, file)
-        if err != nil {
-            http.Error(w, "Error saving image", http.StatusInternalServerError)
-            return
-        }
-        imagePath = "/static/images/" + filename
+        imagePath = imageURL
     } else if err != http.ErrMissingFile {
         http.Error(w, "Error retrieving image", http.StatusInternalServerError)
         return
     }
 
-    // Update query
+    // Update query (only update image_path if a new image is uploaded)
     if imagePath != "" {
         _, err = DB.Exec(`UPDATE memories SET title = ?, description = ?, image_path = ?, privacy = ? WHERE memory_id = ? AND username = ?`,
             title, description, imagePath, privacy, memoryID, username)
     } else {
+        // If no new image, don't update the image_path
         _, err = DB.Exec(`UPDATE memories SET title = ?, description = ?, privacy = ? WHERE memory_id = ? AND username = ?`,
             title, description, privacy, memoryID, username)
     }

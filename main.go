@@ -1,9 +1,17 @@
 package main
 
 import (
+	"bytes"
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
+	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
+	"net/url"
 	"os"
+	"time"
 )
 
 func main() {
@@ -107,4 +115,49 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 
     // Render the template
     templates.ExecuteTemplate(w, "index.html", data)
+}
+func uploadToImgBB(file multipart.File) (string, error) {
+	apiKey := "a9edffca025c2863cd7f441529af0a54"
+
+	// Read file into memory
+	buf := new(bytes.Buffer)
+	_, err := io.Copy(buf, file)
+	if err != nil {
+		return "", err
+	}
+
+	// Base64 encode
+	encoded := base64.StdEncoding.EncodeToString(buf.Bytes())
+
+	// Prepare request
+	data := url.Values{}
+	data.Set("key", apiKey)
+	data.Set("image", encoded)
+
+	// Send request
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.PostForm("https://api.imgbb.com/1/upload", data)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	// Check response code
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("ImgBB upload failed: %s", string(body))
+	}
+
+	// Parse JSON
+	var result struct {
+		Data struct {
+			URL string `json:"url"`
+		} `json:"data"`
+	}
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	if err != nil {
+		return "", err
+	}
+
+	return result.Data.URL, nil
 }
