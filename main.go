@@ -117,8 +117,11 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
     templates.ExecuteTemplate(w, "index.html", data)
 }
 func uploadToImgBB(file multipart.File) (string, error) {
-	apiKey := "a9edffca025c2863cd7f441529af0a54"
+	apiKey := os.Getenv("IMGBB_API_KEY")  // Use the environment variable
 
+    if apiKey == "" {
+        return "", fmt.Errorf("API key not set")
+    }
 	// Read file into memory
 	buf := new(bytes.Buffer)
 	_, err := io.Copy(buf, file)
