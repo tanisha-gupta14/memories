@@ -36,5 +36,5 @@ func InitDB() {
 		log.Fatal("❌ Failed to ping DB:", err)
 	}
 
-	log.Println("✅ Connected to Railway DB!")
+	log.Println("✅ Connected to DB!")
 }
